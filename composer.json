@@ -1,0 +1,23 @@
+{
+    "name": "vulnerar/agent",
+    "authors": [
+        {
+            "name": "Jeremy Angele"
+        }
+    ],
+    "require": {
+        "laravel/framework": "^12"
+    },
+    "autoload": {
+        "psr-4": {
+            "Vulnerar\\Agent\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Vulnerar\\Agent\\AgentServiceProvider"
+            ]
+        }
+    }
+}
