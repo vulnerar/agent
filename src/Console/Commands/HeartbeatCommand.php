@@ -3,7 +3,8 @@
 namespace Vulnerar\Agent\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
+use Vulnerar\Agent\Event;
+use Vulnerar\Agent\Jobs\IngestEvents;
 
 class HeartbeatCommand extends Command
 {
@@ -18,13 +19,6 @@ class HeartbeatCommand extends Command
             return;
         }
 
-        Http::vulnerar()->post("/agent/ingest", [
-            'events' => [
-                [
-                    'type' => 'heartbeat',
-                    'timestamp' => now(),
-                ]
-            ]
-        ]);
+        IngestEvents::dispatchSync(new Event('heartbeat'));
     }
 }

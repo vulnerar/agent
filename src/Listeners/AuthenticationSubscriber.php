@@ -7,6 +7,8 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Support\Facades\Log;
 use Psr\Log\LoggerInterface;
+use Vulnerar\Agent\Event;
+use Vulnerar\Agent\Jobs\IngestEvents;
 
 class AuthenticationSubscriber
 {
@@ -22,19 +24,31 @@ class AuthenticationSubscriber
 
     public function handleRegistered(Registered $event): void
     {
-        $this->log->info('Registered event', [
-            'login' => request()?->get('email', request()?->get('username', request()?->get('login'))),
-            ...$this->getBasicInfo($event),
-        ]);
+        $event = new Event(
+            'auth.registered',
+            [
+                'login' => request()?->get('email', request()?->get('username', request()?->get('login'))),
+                ...$this->getBasicInfo($event),
+            ]
+        );
+        IngestEvents::dispatch($event);
+
+        $this->log->info('auth.registered event', $event->toArray());
     }
 
     public function handleLogin(Login $event): void
     {
-        $this->log->info('Login event', [
-            'guard' => $event->guard,
-            'login' => request()?->get('email', request()?->get('username', request()?->get('login'))),
-            ...$this->getBasicInfo($event),
-        ]);
+        $event = new Event(
+            'auth.login',
+            [
+                'guard' => $event->guard,
+                'login' => request()?->get('email', request()?->get('username', request()?->get('login'))),
+                ...$this->getBasicInfo($event),
+            ]
+        );
+        IngestEvents::dispatch($event);
+
+        $this->log->info('auth.login event', $event->toArray());
     }
 
     private function getBasicInfo(Registered|Login $event): array
@@ -45,7 +59,6 @@ class AuthenticationSubscriber
             'ip_address' => request()?->ip(),
             'user_agent' => request()?->userAgent(),
             'environment' => app()->runningInConsole() ? 'console' : 'web',
-            'timestamp' => (string) now(),
         ];
     }
 
