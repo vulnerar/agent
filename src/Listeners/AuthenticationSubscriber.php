@@ -2,38 +2,29 @@
 
 namespace Vulnerar\Agent\Listeners;
 
+use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Events\Dispatcher;
-use Illuminate\Support\Facades\Log;
-use Psr\Log\LoggerInterface;
 use Vulnerar\Agent\Event;
 use Vulnerar\Agent\Jobs\IngestEvents;
+use Vulnerar\Agent\Vulnerar;
 
 class AuthenticationSubscriber
 {
-    private LoggerInterface $log;
-
-    public function __construct()
-    {
-        $this->log = Log::build([
-            'driver' => 'single',
-            'path' => storage_path('logs/authentication.log'),
-        ]);
-    }
-
     public function handleRegistered(Registered $event): void
     {
         $event = new Event(
             'auth.registered',
             [
                 'login' => request()?->get('email', request()?->get('username', request()?->get('login'))),
-                ...$this->getBasicInfo($event),
-            ]
+                'user' => Vulnerar::resolveUserDetails($event->user),
+                'ip_address' => request()?->ip(),
+            ],
+
         );
         IngestEvents::dispatch($event);
-
-        $this->log->info('auth.registered event', $event->toArray());
     }
 
     public function handleLogin(Login $event): void
@@ -43,23 +34,37 @@ class AuthenticationSubscriber
             [
                 'guard' => $event->guard,
                 'login' => request()?->get('email', request()?->get('username', request()?->get('login'))),
-                ...$this->getBasicInfo($event),
+                'user' => Vulnerar::resolveUserDetails($event->user),
+                'ip_address' => request()?->ip(),
             ]
         );
         IngestEvents::dispatch($event);
-
-        $this->log->info('auth.login event', $event->toArray());
     }
 
-    private function getBasicInfo(Registered|Login $event): array
+    public function handleFailed(Failed $event): void
     {
-        return [
-            'user_id' => $event->user->getAuthIdentifier(),
-            'user_class' => get_class($event->user),
-            'ip_address' => request()?->ip(),
-            'user_agent' => request()?->userAgent(),
-            'environment' => app()->runningInConsole() ? 'console' : 'web',
-        ];
+        $event = new Event(
+            'auth.failed',
+            [
+                'guard' => $event->guard,
+                'credentials' => $event->credentials,
+                'user' => Vulnerar::resolveUserDetails($event->user),
+                'ip_address' => request()?->ip(),
+            ]
+        );
+        IngestEvents::dispatch($event);
+    }
+
+    public function handleVerified(Verified $event): void
+    {
+        $event = new Event(
+            'auth.verified',
+            [
+                'user' => Vulnerar::resolveUserDetails($event->user), // @phpstan-ignore-line
+                'ip_address' => request()?->ip(),
+            ]
+        );
+        IngestEvents::dispatch($event);
     }
 
     public function subscribe(Dispatcher $events): array
@@ -67,6 +72,7 @@ class AuthenticationSubscriber
         return [
             Registered::class => 'handleRegistered',
             Login::class => 'handleLogin',
+            Failed::class => 'handleFailed',
         ];
     }
 }
