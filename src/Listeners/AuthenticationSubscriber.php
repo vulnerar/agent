@@ -7,6 +7,7 @@ use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Support\Facades\Context;
+use Illuminate\Support\Str;
 use SensitiveParameter;
 use Vulnerar\Agent\Event;
 use Vulnerar\Agent\Jobs\IngestEvents;
@@ -48,7 +49,7 @@ class AuthenticationSubscriber
             'auth.failed',
             [
                 'guard' => $event->guard,
-                'credentials' => $this->guessCredentialFields($event->credentials),
+                'credentials' => $this->guessCredentialFields($event->credentials, true),
                 'user' => Vulnerar::resolveUserDetails($event->user),
                 'ip_address' => request()?->ip(),
             ]
@@ -59,7 +60,7 @@ class AuthenticationSubscriber
     /**
      * Guess the login and password fields from the given credentials.
      */
-    private function guessCredentialFields(#[SensitiveParameter] array $credentials): array
+    private function guessCredentialFields(#[SensitiveParameter] array $credentials, bool $mask = false): array
     {
         $credentials = collect($credentials);
 
@@ -67,8 +68,31 @@ class AuthenticationSubscriber
             'login' => $credentials->get('email')
                 ?? $credentials->get('username')
                 ?? $credentials->get('login'),
-            'password' => $credentials->get('password'),
+            'password' => $mask
+                ? $this->maskPassword($credentials->get('password'))
+                : $credentials->get('password'),
         ];
+    }
+
+    /**
+     * Mask the given password and pad it to 14 characters.
+     *
+     * @example  password1234 => pass**rd**3**
+     * @example  qwerty123 => qwer**12******
+     */
+    public function maskPassword(#[SensitiveParameter] ?string $password): ?string
+    {
+        if ($password === null) return null;
+
+        $password = substr($password, 0, 14);
+        $mask = '';
+        $i = 0;
+
+        collect([4,2,1])->each(function (int $leak) use ($password, &$mask, &$i) {
+            $mask .= substr($password, $i, $leak) . '**';
+            $i += $leak +2;
+        });
+        return (string) Str::of($mask)->padRight(14, '*');
     }
 
     public function subscribe(Dispatcher $events): array
