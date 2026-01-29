@@ -9,7 +9,6 @@ use Vulnerar\Agent\Console\Commands\HeartbeatCommand;
 use Vulnerar\Agent\Listeners\AuthenticationSubscriber;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
-use Vulnerar\Agent\Listeners\RequestSubscriber;
 
 class AgentServiceProvider extends ServiceProvider
 {
@@ -33,7 +32,6 @@ class AgentServiceProvider extends ServiceProvider
         });
 
         Event::subscribe(AuthenticationSubscriber::class);
-        Event::subscribe(RequestSubscriber::class);
 
         $this->publishes([
             __DIR__ . '/../config/vulnerar.php' => config_path('vulnerar.php'),
