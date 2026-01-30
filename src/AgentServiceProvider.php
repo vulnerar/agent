@@ -2,10 +2,8 @@
 
 namespace Vulnerar\Agent;
 
-use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Http;
-use Vulnerar\Agent\Console\Commands\HeartbeatCommand;
 use Vulnerar\Agent\Listeners\AuthenticationSubscriber;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -36,14 +34,5 @@ class AgentServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/../config/vulnerar.php' => config_path('vulnerar.php'),
         ]);
-
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                HeartbeatCommand::class,
-            ]);
-        }
-
-        $schedule = app()->make(Schedule::class);
-        $schedule->command(HeartbeatCommand::class)->everyFiveMinutes();
     }
 }
