@@ -2,6 +2,7 @@
 
 namespace Vulnerar\Agent\Jobs;
 
+use DateTime;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Arr;
@@ -30,5 +31,15 @@ class IngestEvents implements ShouldQueue
                 return $event->toArray();
             }, $events),
         ]);
+    }
+
+    public function backoff(): array
+    {
+        return [60, 300, 900, 3600];
+    }
+
+    public function retryUntil(): DateTime
+    {
+        return now()->plus(days: 14);
     }
 }
