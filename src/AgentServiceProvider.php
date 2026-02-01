@@ -21,12 +21,12 @@ class AgentServiceProvider extends ServiceProvider
     {
         Http::macro('vulnerar', function () {
             $host = config('vulnerar.host');
-            $key = config('vulnerar.key');
+            $token = config('vulnerar.token');
 
             return Http::baseUrl("https://{$host}/api/")
                 ->asJson()
                 ->acceptJson()
-                ->withToken($key);
+                ->withToken($token);
         });
 
         Event::subscribe(AuthenticationSubscriber::class);
