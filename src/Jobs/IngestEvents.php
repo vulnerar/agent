@@ -2,7 +2,6 @@
 
 namespace Vulnerar\Agent\Jobs;
 
-use DateTime;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Arr;
@@ -38,8 +37,12 @@ class IngestEvents implements ShouldQueue
         return [60, 300, 900, 3600];
     }
 
-    public function retryUntil(): DateTime
+    /**
+     * Don't add return type declaration!
+     * Return type changes when app uses immutable dates.
+     */
+    public function retryUntil()
     {
-        return now()->plus(days: 14);
+        return now()->addDays(14);
     }
 }
