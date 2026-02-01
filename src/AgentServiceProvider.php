@@ -12,6 +12,8 @@ class AgentServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->mergeConfigFrom(__DIR__ . '/../config/vulnerar.php', 'vulnerar');
+
         $this->app->scoped(Vulnerar::class, function (Application $app): Vulnerar {
             return new Vulnerar;
         });
@@ -30,9 +32,5 @@ class AgentServiceProvider extends ServiceProvider
         });
 
         Event::subscribe(AuthenticationSubscriber::class);
-
-        $this->publishes([
-            __DIR__ . '/../config/vulnerar.php' => config_path('vulnerar.php'),
-        ]);
     }
 }
