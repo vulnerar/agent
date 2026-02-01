@@ -26,7 +26,7 @@ class IngestEvents implements ShouldQueue
     {
         $events = Arr::wrap($this->events);
 
-        Http::vulnerar()->post('/agent/ingest', [
+        Http::vulnerar()->throw()->post('/agent/ingest', [
             'events' => array_map(function (Event $event) {
                 return $event->toArray();
             }, $events),

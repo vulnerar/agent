@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'host' => env('VULNERAR_HOST'),
+    'host' => env('VULNERAR_HOST', 'ingest.vulnerar.com'),
 
     'key' => env('VULNERAR_KEY'),
 
