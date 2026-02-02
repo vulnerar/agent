@@ -2,16 +2,15 @@
 
 namespace Vulnerar\Agent;
 
-use Carbon\CarbonInterface;
-
 class Event
 {
+    public float $timestamp;
+
     public function __construct(
         public string $type,
         public array $data = [],
-        public ?CarbonInterface $timestamp = null,
     ) {
-        $this->timestamp ??= now();
+        $this->timestamp = microtime(true);
     }
 
     public function toArray(): array
@@ -26,7 +25,7 @@ class Event
             'data' => $this->data,
             'user' => $user,
             'ip_address' => $ipAddress,
-            'timestamp' => $this->timestamp->toIso8601String(),
+            'timestamp' => $this->timestamp,
         ];
     }
 }
