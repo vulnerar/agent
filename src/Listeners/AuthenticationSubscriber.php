@@ -29,10 +29,9 @@ class AuthenticationSubscriber
         $event = new Event(
             'auth.login',
             [
-                'guard' => $event->guard,
                 'login' => $credentials['login'] ?? null,
                 'password' => [
-                    'sha1' => isset($credentials['password'])
+                    'sha1' => filled($credentials['password'] ?? null)
                         ? sha1((string) $credentials['password'])
                         : null,
                 ],
@@ -48,7 +47,6 @@ class AuthenticationSubscriber
         $event = new Event(
             'auth.failed',
             [
-                'guard' => $event->guard,
                 'credentials' => $this->guessCredentialFields($event->credentials, true),
                 'user' => Vulnerar::resolveUserDetails($event->user),
                 'ip_address' => request()?->ip(),
@@ -82,7 +80,7 @@ class AuthenticationSubscriber
      */
     public function maskPassword(#[SensitiveParameter] ?string $password): ?string
     {
-        if ($password === null) return null;
+        if (blank($password)) return null;
 
         $password = substr($password, 0, 14);
         $mask = '';
