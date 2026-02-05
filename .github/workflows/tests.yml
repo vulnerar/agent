@@ -1,0 +1,39 @@
+name: tests.yml
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # php: [8.2, 8.3, 8.4, 8.5]
+        php: [8.4]
+        laravel: [11.*]
+        # laravel: [11.*, 12.*]
+
+    name: 2. Unit - L${{ matrix.laravel }} - PHP ${{ matrix.php }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          # extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, gd, redis, igbinary, msgpack, memcached, gmp
+          ini-values: error_reporting=E_ALL
+          tools: composer:v2
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: |
+          composer require "laravel/framework:${{ matrix.laravel }}" --no-interaction --no-update --dev
+          composer update --prefer-stable --no-interaction
+
+      - name: Run Tests
+        run: ./vendor/bin/pest --ci
