@@ -18,6 +18,7 @@ it('uses the correct configuration', function () {
 
     Http::assertSent(function (Request $request): bool {
         return $request->url() === 'https://example.com/api/'
+            && $request->hasHeader('User-Agent', 'Vulnerar Agent')
             && $request->hasHeader('Content-Type', 'application/json')
             && $request->hasHeader('Accept', 'application/json')
             && $request->hasHeader('Authorization', 'Bearer <token>');

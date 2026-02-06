@@ -26,6 +26,7 @@ class AgentServiceProvider extends ServiceProvider
             $token = config('vulnerar.token');
 
             return Http::baseUrl("https://{$host}/api/")
+                ->withUserAgent('Vulnerar Agent')
                 ->asJson()
                 ->acceptJson()
                 ->withToken($token);
