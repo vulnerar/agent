@@ -32,5 +32,8 @@ jobs:
           composer require "laravel/framework:${{ matrix.laravel }}" --no-interaction --no-update --dev
           composer update --prefer-stable --no-interaction
 
+      - name: Install Workbench
+        run: ./vendor/bin/testbench workbench:install --no-interaction
+
       - name: Run Tests
         run: ./vendor/bin/pest --ci
