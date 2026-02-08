@@ -4,6 +4,8 @@ namespace Vulnerar\Agent;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schedule;
+use Vulnerar\Agent\Console\Commands\PackageCommand;
 use Vulnerar\Agent\Listeners\AuthenticationSubscriber;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -33,5 +35,13 @@ class AgentServiceProvider extends ServiceProvider
         });
 
         Event::subscribe(AuthenticationSubscriber::class);
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                PackageCommand::class,
+            ]);
+
+            Schedule::command(PackageCommand::class)->daily();
+        }
     }
 }
