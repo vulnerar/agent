@@ -38,9 +38,11 @@ class AgentServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
+                ApplicationCommand::class,
                 PackageCommand::class,
             ]);
 
+            Schedule::command(ApplicationCommand::class)->daily();
             Schedule::command(PackageCommand::class)->daily();
         }
     }
