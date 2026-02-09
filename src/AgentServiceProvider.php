@@ -5,6 +5,7 @@ namespace Vulnerar\Agent;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schedule;
+use Vulnerar\Agent\Console\Commands\ApplicationCommand;
 use Vulnerar\Agent\Console\Commands\PackageCommand;
 use Vulnerar\Agent\Listeners\AuthenticationSubscriber;
 use Illuminate\Support\Facades\Event;
