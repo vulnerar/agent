@@ -15,7 +15,13 @@ it('ingests app.info event', function () {
 
         return $event->type === 'app.info'
             && $event->data['app_url'] === config('app.url')
+            && $event->data['environment'] === app()->environment()
             && $event->data['laravel_version'] === app()->version()
-            && $event->data['php_version'] === phpversion();
+            && $event->data['php_version'] === phpversion()
+            && $event->data['os']['name'] !== null
+            && isset($event->data['os']['user']['uid'])
+            && isset($event->data['os']['user']['gid'])
+            && isset($event->data['os']['user']['user'])
+            && isset($event->data['os']['user']['group']);
     });
 });
