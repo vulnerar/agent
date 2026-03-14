@@ -13,6 +13,7 @@ use Vulnerar\Agent\Console\Commands\PackageCommand;
 use Vulnerar\Agent\Listeners\AuthenticationSubscriber;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Vulnerar\Agent\Listeners\RequestSubscriber;
 
 final class AgentServiceProvider extends ServiceProvider
 {
@@ -40,6 +41,7 @@ final class AgentServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Event::subscribe(AuthenticationSubscriber::class);
+        Event::subscribe(RequestSubscriber::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([

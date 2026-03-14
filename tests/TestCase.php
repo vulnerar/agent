@@ -20,6 +20,10 @@ abstract class TestCase extends BaseTestCase
         $router->get('/basic', function () {
             return Auth::user();
         })->middleware('auth.basic');
+
+        $router->get('/request/{id}', function () {
+            return 'ok';
+        })->name('request.show');
     }
 
     protected function getPackageProviders($app): array
