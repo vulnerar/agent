@@ -23,6 +23,11 @@ class AuthenticationSubscriber
 
     public function handleLogin(Login $event): void
     {
+        // Handle only logins with credentials
+        if (Context::missingHidden('vulnerar_auth_credentials')) {
+            return;
+        }
+
         $credentials = $this->guessCredentialFields(
             Context::pullHidden('vulnerar_auth_credentials', [])
         );

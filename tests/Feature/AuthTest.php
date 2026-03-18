@@ -91,44 +91,24 @@ it('ingests auth.login event using Auth::basic()', function () {
     });
 });
 
-it('ingests auth.login event using Auth::login()', function () {
+it('does not ingest auth.login events using Auth::login()', function () {
     Queue::fake();
 
     $user = User::factory()->create();
 
     Auth::login($user);
 
-    Queue::assertPushed(function (IngestEvents $job) use ($user) {
-        $event = $job->events;
-
-        return $event->type === 'auth.login'
-            && $event->data['login'] === null
-            && $event->data['password']['sha1'] === null
-            && $event->user['id'] === $user->id
-            && $event->user['name'] === $user->name
-            && $event->user['login'] === $user->email
-            && $event->ipAddress === '127.0.0.1';
-    });
+    Queue::assertNotPushed(IngestEvents::class);
 });
 
-it('ingests auth.login event using Auth::loginUsingId()', function () {
+it('does not ingest auth.login events using Auth::loginUsingId()', function () {
     Queue::fake();
 
     $user = User::factory()->create();
 
     Auth::loginUsingId($user->getKey());
 
-    Queue::assertPushed(function (IngestEvents $job) use ($user) {
-        $event = $job->events;
-
-        return $event->type === 'auth.login'
-            && $event->data['login'] === null
-            && $event->data['password']['sha1'] === null
-            && $event->user['id'] === $user->id
-            && $event->user['name'] === $user->name
-            && $event->user['login'] === $user->email
-            && $event->ipAddress === '127.0.0.1';
-    });
+    Queue::assertNotPushed(IngestEvents::class);
 });
 
 it('ingests auth.failed event (existing user) using Auth::attempt()', function () {
