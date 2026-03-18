@@ -8,7 +8,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Vulnerar\Agent\Event;
 
-class IngestEvents implements ShouldQueue
+final class IngestEvents implements ShouldQueue
 {
     use Queueable;
 

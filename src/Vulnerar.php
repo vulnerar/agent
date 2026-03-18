@@ -4,7 +4,7 @@ namespace Vulnerar\Agent;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 
-class Vulnerar
+final class Vulnerar
 {
     protected static $userDetailsResolver;
 

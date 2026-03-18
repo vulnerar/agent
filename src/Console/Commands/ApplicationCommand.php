@@ -9,7 +9,7 @@ use Vulnerar\Agent\Event;
 use Vulnerar\Agent\Jobs\IngestEvents;
 use const DIRECTORY_SEPARATOR;
 
-class ApplicationCommand extends Command
+final class ApplicationCommand extends Command
 {
     /**
      * The name and signature of the console command.

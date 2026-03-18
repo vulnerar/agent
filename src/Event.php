@@ -2,7 +2,7 @@
 
 namespace Vulnerar\Agent;
 
-class Event
+final class Event
 {
     public ?array $user = null;
     public ?string $ipAddress = null;

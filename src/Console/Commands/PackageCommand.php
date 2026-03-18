@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 use Vulnerar\Agent\Event;
 use Vulnerar\Agent\Jobs\IngestEvents;
 
-class PackageCommand extends Command
+final class PackageCommand extends Command
 {
     /**
      * The name and signature of the console command.

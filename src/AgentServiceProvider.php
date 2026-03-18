@@ -11,7 +11,7 @@ use Vulnerar\Agent\Listeners\AuthenticationSubscriber;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
-class AgentServiceProvider extends ServiceProvider
+final class AgentServiceProvider extends ServiceProvider
 {
     public function register(): void
     {

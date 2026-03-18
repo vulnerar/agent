@@ -13,7 +13,7 @@ use Vulnerar\Agent\Event;
 use Vulnerar\Agent\Jobs\IngestEvents;
 use Vulnerar\Agent\Vulnerar;
 
-class AuthenticationSubscriber
+final class AuthenticationSubscriber
 {
     public function handleAttempting(Attempting $event): void
     {
