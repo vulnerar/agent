@@ -1,5 +1,6 @@
 # Vulnerar Agent
 
+![Laravel Badge](https://img.shields.io/badge/Laravel-11|12|13-blue?logo=laravel)
 [![tests](https://github.com/vulnerar/agent/actions/workflows/tests.yml/badge.svg)](https://github.com/vulnerar/agent/actions/workflows/tests.yml)
 
 ## Installation
