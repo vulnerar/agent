@@ -6,7 +6,6 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Vulnerar\Agent\Event;
-use Vulnerar\Agent\Jobs\IngestEvents;
 use const DIRECTORY_SEPARATOR;
 
 final class ApplicationCommand extends Command
@@ -43,7 +42,7 @@ final class ApplicationCommand extends Command
                 ],
             ]
         );
-        IngestEvents::dispatch($event);
+        $event->ingest();
     }
 
     private function getOsName(): string

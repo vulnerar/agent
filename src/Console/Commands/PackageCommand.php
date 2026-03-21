@@ -4,7 +4,6 @@ namespace Vulnerar\Agent\Console\Commands;
 
 use Illuminate\Console\Command;
 use Vulnerar\Agent\Event;
-use Vulnerar\Agent\Jobs\IngestEvents;
 
 final class PackageCommand extends Command
 {
@@ -44,6 +43,6 @@ final class PackageCommand extends Command
                 'lock_encoded' => base64_encode($lock),
             ]
         );
-        IngestEvents::dispatch($event);
+        $event->ingest();
     }
 }

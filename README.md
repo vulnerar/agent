@@ -19,5 +19,8 @@ To install the agent, follow the steps below:
     ```
 
 3. Run agent
-
-   The agent uses Laravel's built-in queue system and task scheduling to synchronize events in the background. Use your preferred way to [run the queue worker](https://laravel.com/docs/queues#running-the-queue-worker) and [task scheduler](https://laravel.com/docs/scheduling#running-the-scheduler).
+   
+   ```bash
+    php artisan vulnerar:agent
+    ```
+   The agent uses Laravel's built-in task scheduling to collect periodic events in the background. Use your preferred way to [run the task scheduler](https://laravel.com/docs/scheduling#running-the-scheduler).

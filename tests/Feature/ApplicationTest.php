@@ -1,27 +1,26 @@
 <?php
 
-use Illuminate\Support\Facades\Queue;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Artisan;
 use Vulnerar\Agent\Console\Commands\ApplicationCommand;
-use Vulnerar\Agent\Jobs\IngestEvents;
+
 
 it('ingests app.info event', function () {
-    Queue::fake();
+    Http::fake();
 
     Artisan::call(ApplicationCommand::class);
 
-    Queue::assertPushed(function (IngestEvents $job): bool {
-        $event = $job->events;
-
-        return $event->type === 'app.info'
-            && $event->data['app_url'] === config('app.url')
-            && $event->data['environment'] === app()->environment()
-            && $event->data['laravel_version'] === app()->version()
-            && $event->data['php_version'] === phpversion()
-            && $event->data['os']['name'] !== null
-            && isset($event->data['os']['user']['uid'])
-            && isset($event->data['os']['user']['gid'])
-            && isset($event->data['os']['user']['user'])
-            && isset($event->data['os']['user']['group']);
+    Http::assertSent(function (Request $request): bool {
+        return $request['type'] === 'app.info'
+            && $request['data']['app_url'] === config('app.url')
+            && $request['data']['environment'] === app()->environment()
+            && $request['data']['laravel_version'] === app()->version()
+            && $request['data']['php_version'] === phpversion()
+            && $request['data']['os']['name'] !== null
+            && isset($request['data']['os']['user']['uid'])
+            && isset($request['data']['os']['user']['gid'])
+            && isset($request['data']['os']['user']['user'])
+            && isset($request['data']['os']['user']['group']);
     });
 });
