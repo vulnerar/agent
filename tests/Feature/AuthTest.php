@@ -1,15 +1,15 @@
 <?php
 
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Vulnerar\Agent\Jobs\IngestEvents;
 use Workbench\App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Queue;
 
 pest()->use(RefreshDatabase::class);
 
 it('ingests auth.login event using Auth::attempt()', function () {
-    Queue::fake();
+    Http::fake();
 
     $credentials = [
         'email' => 'jon@example.com',
@@ -20,21 +20,19 @@ it('ingests auth.login event using Auth::attempt()', function () {
 
     Auth::attempt($credentials);
 
-    Queue::assertPushed(function (IngestEvents $job) use ($user, $credentials) {
-        $event = $job->events;
-
-        return $event->type === 'auth.login'
-            && $event->data['login'] === $credentials['email']
-            && $event->data['password']['sha1'] === sha1($credentials['password'])
-            && $event->user['id'] === $user->id
-            && $event->user['name'] === $user->name
-            && $event->user['login'] === $user->email
-            && $event->ipAddress === '127.0.0.1';
+    Http::assertSent(function (Request $request) use ($user, $credentials): bool {
+        return $request['type'] === 'auth.login'
+            && $request['data']['login'] === $credentials['email']
+            && $request['data']['password']['sha1'] === sha1($credentials['password'])
+            && $request['user']['id'] === $user->id
+            && $request['user']['name'] === $user->name
+            && $request['user']['login'] === $user->email
+            && $request['ip_address'] === '127.0.0.1';
     });
 });
 
 it('ingests auth.login event using Auth::attemptWhen()', function () {
-    Queue::fake();
+    Http::fake();
 
     $credentials = [
         'email' => 'jon@example.com',
@@ -47,21 +45,19 @@ it('ingests auth.login event using Auth::attemptWhen()', function () {
         return true;
     });
 
-    Queue::assertPushed(function (IngestEvents $job) use ($user, $credentials) {
-        $event = $job->events;
-
-        return $event->type === 'auth.login'
-            && $event->data['login'] === $credentials['email']
-            && $event->data['password']['sha1'] === sha1($credentials['password'])
-            && $event->user['id'] === $user->id
-            && $event->user['name'] === $user->name
-            && $event->user['login'] === $user->email
-            && $event->ipAddress === '127.0.0.1';
+    Http::assertSent(function (Request $request) use ($user, $credentials): bool {
+        return $request['type'] === 'auth.login'
+            && $request['data']['login'] === $credentials['email']
+            && $request['data']['password']['sha1'] === sha1($credentials['password'])
+            && $request['user']['id'] === $user->id
+            && $request['user']['name'] === $user->name
+            && $request['user']['login'] === $user->email
+            && $request['ip_address'] === '127.0.0.1';
     });
 });
 
 it('ingests auth.login event using Auth::basic()', function () {
-    Queue::fake();
+    Http::fake();
 
     $credentials = [
         'email' => 'jon@example.com',
@@ -78,41 +74,39 @@ it('ingests auth.login event using Auth::basic()', function () {
             'email' => $user->email,
         ]);
 
-    Queue::assertPushed(function (IngestEvents $job) use ($user, $credentials) {
-        $event = $job->events;
-
-        return $event->type === 'auth.login'
-            && $event->data['login'] === $credentials['email']
-            && $event->data['password']['sha1'] === sha1($credentials['password'])
-            && $event->user['id'] === $user->id
-            && $event->user['name'] === $user->name
-            && $event->user['login'] === $user->email
-            && $event->ipAddress === '127.0.0.1';
+    Http::assertSent(function (Request $request) use ($user, $credentials): bool {
+        return $request['type'] === 'auth.login'
+            && $request['data']['login'] === $credentials['email']
+            && $request['data']['password']['sha1'] === sha1($credentials['password'])
+            && $request['user']['id'] === $user->id
+            && $request['user']['name'] === $user->name
+            && $request['user']['login'] === $user->email
+            && $request['ip_address'] === '127.0.0.1';
     });
 });
 
 it('does not ingest auth.login events using Auth::login()', function () {
-    Queue::fake();
+    Http::fake();
 
     $user = User::factory()->create();
 
     Auth::login($user);
 
-    Queue::assertNotPushed(IngestEvents::class);
+    Http::assertNothingSent();
 });
 
 it('does not ingest auth.login events using Auth::loginUsingId()', function () {
-    Queue::fake();
+    Http::fake();
 
     $user = User::factory()->create();
 
     Auth::loginUsingId($user->getKey());
 
-    Queue::assertNotPushed(IngestEvents::class);
+    Http::assertNothingSent();
 });
 
 it('ingests auth.failed event (existing user) using Auth::attempt()', function () {
-    Queue::fake();
+    Http::fake();
 
     $user = User::factory()->create([
         'email' => 'jon@example.com',
@@ -124,23 +118,21 @@ it('ingests auth.failed event (existing user) using Auth::attempt()', function (
         'password' => 'wrong-password',
     ]);
 
-    Queue::assertPushed(function (IngestEvents $job) use ($user) {
-        $event = $job->events;
-
-        return $event->type === 'auth.failed'
-            && $event->data['credentials']['login'] === 'jon@example.com'
-            && $event->data['credentials']['password'] === 'wron**pa**w***'
-            && $event->user['id'] === $user->id
-            && $event->user['name'] === $user->name
-            && $event->user['login'] === $user->email
-            && $event->ipAddress === '127.0.0.1';
+    Http::assertSent(function (Request $request) use ($user): bool {
+        return $request['type'] === 'auth.failed'
+            && $request['data']['credentials']['login'] === 'jon@example.com'
+            && $request['data']['credentials']['password'] === 'wron**pa**w***'
+            && $request['user']['id'] === $user->id
+            && $request['user']['name'] === $user->name
+            && $request['user']['login'] === $user->email
+            && $request['ip_address'] === '127.0.0.1';
     });
 });
 
 it('ingests auth.failed event (non-existing user) using Auth::attempt()', function () {
-    Queue::fake();
+    Http::fake();
 
-    $user = User::factory()->create([
+    User::factory()->create([
         'email' => 'jon@example.com',
         'password' => 'password',
     ]);
@@ -150,21 +142,19 @@ it('ingests auth.failed event (non-existing user) using Auth::attempt()', functi
         'password' => 'password',
     ]);
 
-    Queue::assertPushed(function (IngestEvents $job) use ($user) {
-        $event = $job->events;
-
-        return $event->type === 'auth.failed'
-            && $event->data['credentials']['login'] === 'admin@example.com'
-            && $event->data['credentials']['password'] === 'pass**rd******'
-            && $event->user['id'] === null
-            && $event->user['name'] === null
-            && $event->user['login'] === null
-            && $event->ipAddress === '127.0.0.1';
+    Http::assertSent(function (Request $request): bool {
+        return $request['type'] === 'auth.failed'
+            && $request['data']['credentials']['login'] === 'admin@example.com'
+            && $request['data']['credentials']['password'] === 'pass**rd******'
+            && $request['user']['id'] === null
+            && $request['user']['name'] === null
+            && $request['user']['login'] === null
+            && $request['ip_address'] === '127.0.0.1';
     });
 });
 
 it('ingests auth.failed event using Auth::attemptWhen()', function () {
-    Queue::fake();
+    Http::fake();
 
     $user = User::factory()->create([
         'email' => 'jon@example.com',
@@ -178,21 +168,19 @@ it('ingests auth.failed event using Auth::attemptWhen()', function () {
         return true;
     });
 
-    Queue::assertPushed(function (IngestEvents $job) use ($user) {
-        $event = $job->events;
-
-        return $event->type === 'auth.failed'
-            && $event->data['credentials']['login'] === 'jon@example.com'
-            && $event->data['credentials']['password'] === 'wron**pa**w***'
-            && $event->user['id'] === $user->id
-            && $event->user['name'] === $user->name
-            && $event->user['login'] === $user->email
-            && $event->ipAddress === '127.0.0.1';
+    Http::assertSent(function (Request $request) use ($user): bool {
+        return $request['type'] === 'auth.failed'
+            && $request['data']['credentials']['login'] === 'jon@example.com'
+            && $request['data']['credentials']['password'] === 'wron**pa**w***'
+            && $request['user']['id'] === $user->id
+            && $request['user']['name'] === $user->name
+            && $request['user']['login'] === $user->email
+            && $request['ip_address'] === '127.0.0.1';
     });
 });
 
 it('ingests auth.failed event using Auth::basic()', function () {
-    Queue::fake();
+    Http::fake();
 
     $user = User::factory()->create([
         'email' => 'jon@example.com',
@@ -203,21 +191,19 @@ it('ingests auth.failed event using Auth::basic()', function () {
         ->get('/basic')
         ->assertStatus(401);
 
-    Queue::assertPushed(function (IngestEvents $job) use ($user) {
-        $event = $job->events;
-
-        return $event->type === 'auth.failed'
-            && $event->data['credentials']['login'] === $user->email
-            && $event->data['credentials']['password'] === 'wron**pa**w***'
-            && $event->user['id'] === $user->id
-            && $event->user['name'] === $user->name
-            && $event->user['login'] === $user->email
-            && $event->ipAddress === '127.0.0.1';
+    Http::assertSent(function (Request $request) use ($user): bool {
+        return $request['type'] === 'auth.failed'
+            && $request['data']['credentials']['login'] === $user->email
+            && $request['data']['credentials']['password'] === 'wron**pa**w***'
+            && $request['user']['id'] === $user->id
+            && $request['user']['name'] === $user->name
+            && $request['user']['login'] === $user->email
+            && $request['ip_address'] === '127.0.0.1';
     });
 });
 
 it('ingests auth.failed event using Auth::once()', function () {
-    Queue::fake();
+    Http::fake();
 
     $user = User::factory()->create([
         'email' => 'jon@example.com',
@@ -229,15 +215,13 @@ it('ingests auth.failed event using Auth::once()', function () {
         'password' => 'wrong-password',
     ]);
 
-    Queue::assertPushed(function (IngestEvents $job) use ($user) {
-        $event = $job->events;
-
-        return $event->type === 'auth.failed'
-            && $event->data['credentials']['login'] === $user->email
-            && $event->data['credentials']['password'] === 'wron**pa**w***'
-            && $event->user['id'] === $user->id
-            && $event->user['name'] === $user->name
-            && $event->user['login'] === $user->email
-            && $event->ipAddress === '127.0.0.1';
+    Http::assertSent(function (Request $request) use ($user): bool {
+        return $request['type'] === 'auth.failed'
+            && $request['data']['credentials']['login'] === $user->email
+            && $request['data']['credentials']['password'] === 'wron**pa**w***'
+            && $request['user']['id'] === $user->id
+            && $request['user']['name'] === $user->name
+            && $request['user']['login'] === $user->email
+            && $request['ip_address'] === '127.0.0.1';
     });
 });

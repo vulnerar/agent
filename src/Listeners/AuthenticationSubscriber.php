@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Str;
 use SensitiveParameter;
 use Vulnerar\Agent\Event;
-use Vulnerar\Agent\Jobs\IngestEvents;
 use Vulnerar\Agent\Vulnerar;
 
 final class AuthenticationSubscriber
@@ -44,7 +43,7 @@ final class AuthenticationSubscriber
                 'ip_address' => request()?->ip(),
             ]
         );
-        IngestEvents::dispatch($event);
+        $event->ingest();
     }
 
     public function handleFailed(Failed $event): void
@@ -57,7 +56,7 @@ final class AuthenticationSubscriber
                 'ip_address' => request()?->ip(),
             ]
         );
-        IngestEvents::dispatch($event);
+        $event->ingest();
     }
 
     /**

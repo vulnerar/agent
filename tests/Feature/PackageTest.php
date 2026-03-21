@@ -1,12 +1,12 @@
 <?php
 
-use Illuminate\Support\Facades\Queue;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Artisan;
 use Vulnerar\Agent\Console\Commands\PackageCommand;
-use Vulnerar\Agent\Jobs\IngestEvents;
 
 it('ingests package.composer event', function () {
-    Queue::fake();
+    Http::fake();
 
     $composerPath = base_path('composer.json');
     $lockPath = base_path('composer.lock');
@@ -22,16 +22,14 @@ it('ingests package.composer event', function () {
 
     expect($exitCode)->toBe(0);
 
-    Queue::assertPushed(function (IngestEvents $job) use ($composer, $lock): bool {
-        $event = $job->events;
-
-        return $event->type === 'package.composer'
-            && $event->data['composer'] === json_decode($composer, true)
-            && $event->data['lock'] === json_decode($lock, true)
-            && $event->data['composer_encoded'] === base64_encode($composer)
-            && $event->data['lock_encoded'] === base64_encode($lock)
-            && $event->user === null
-            && $event->ipAddress === null;
+    Http::assertSent(function (Request $request) use ($composer, $lock): bool {
+        return $request['type'] === 'package.composer'
+            && $request['data']['composer'] === json_decode($composer, true)
+            && $request['data']['lock'] === json_decode($lock, true)
+            && $request['data']['composer_encoded'] === base64_encode($composer)
+            && $request['data']['lock_encoded'] === base64_encode($lock)
+            && $request['user'] === null
+            && $request['ip_address'] === null;
     });
 })->after(function () {
     // clean up composer files
@@ -40,11 +38,11 @@ it('ingests package.composer event', function () {
 });
 
 it('skips ingestion when composer files are missing', function () {
-    Queue::fake();
+    Http::fake();
 
     $exitCode = Artisan::call(PackageCommand::class);
 
     expect($exitCode)->toBe(0);
 
-    Queue::assertNothingPushed();
+    Http::assertNothingSent();
 });
