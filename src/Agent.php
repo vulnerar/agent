@@ -3,6 +3,7 @@
 namespace Vulnerar\Agent;
 
 use Exception;
+use Illuminate\Support\Facades\Artisan;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use React\EventLoop\Loop;
@@ -10,6 +11,7 @@ use React\Http\Browser;
 use React\Http\HttpServer;
 use React\Socket\SocketServer;
 use React\Stream\WritableStreamInterface;
+use Vulnerar\Agent\Console\Commands\ApplicationCommand;
 
 final class Agent
 {
@@ -72,6 +74,10 @@ final class Agent
             }
 
             $this->ingest($this->buffer->pull());
+        });
+
+        Loop::addTimer(1, function () {
+            Artisan::call(ApplicationCommand::class);
         });
 
         $this->info('Vulnerar agent listening on 127.0.0.1:'.$port);

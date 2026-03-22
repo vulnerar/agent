@@ -48,7 +48,6 @@ final class AgentServiceProvider extends ServiceProvider
                 PackageCommand::class,
             ]);
 
-            Schedule::command(ApplicationCommand::class)->daily();
             Schedule::command(PackageCommand::class)->daily();
         }
     }
