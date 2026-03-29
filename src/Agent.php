@@ -9,6 +9,11 @@ use Psr\Http\Message\ResponseInterface;
 use React\EventLoop\Loop;
 use React\Http\Browser;
 use React\Http\HttpServer;
+use React\Http\Message\Response;
+use React\Http\Middleware\LimitConcurrentRequestsMiddleware;
+use React\Http\Middleware\RequestBodyBufferMiddleware;
+use React\Http\Middleware\RequestBodyParserMiddleware;
+use React\Http\Middleware\StreamingRequestMiddleware;
 use React\Socket\SocketServer;
 use React\Stream\WritableStreamInterface;
 use Vulnerar\Agent\Console\Commands\ApplicationCommand;
@@ -53,19 +58,25 @@ final class Agent
 
     public function run(int $port): void
     {
-        $httpServer = new HttpServer(function (RequestInterface $request) {
-            $record = json_decode($request->getBody()->getContents(), true);
+        $httpServer = new HttpServer(
+            new StreamingRequestMiddleware(),
+            new LimitConcurrentRequestsMiddleware(100),
+            new RequestBodyBufferMiddleware(20 * 1024 * 1024),
+            new RequestBodyParserMiddleware(),
+            function (RequestInterface $request) {
+                $record = json_decode($request->getBody()->getContents(), true);
 
-            if (! is_array($record)) {
-                return;
-            }
+                if (!is_array($record)) {
+                    return Response::plaintext('OK');
+                }
 
-            $this->buffer->write($record);
+                $this->buffer->write($record);
 
-            if ($this->buffer->full) {
-                $this->ingest($this->buffer->pull());
-            }
-        });
+                if ($this->buffer->full) {
+                    $this->ingest($this->buffer->pull());
+                }
+                return Response::plaintext('OK');
+            });
         $socket = new SocketServer("127.0.0.1:$port");
 
         Loop::addPeriodicTimer(30, function () {

@@ -10,7 +10,7 @@ return [
 
     'agent' => [
         'port' => env('VULNERAR_AGENT_PORT', 2709),
-        'timeout' => 0.5,
+        'timeout' => 1.0,
         'buffer' => 100,
     ]
 ];
