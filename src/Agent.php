@@ -91,6 +91,14 @@ final class Agent
             Artisan::call(ApplicationCommand::class);
         });
 
+        Loop::addTimer(5, function () {
+            if ($this->buffer->count() === 0) {
+                return;
+            }
+
+            $this->ingest($this->buffer->pull());
+        });
+
         $this->info('Vulnerar agent listening on 127.0.0.1:'.$port);
 
         $httpServer->listen($socket);
