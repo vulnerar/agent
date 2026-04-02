@@ -4,6 +4,9 @@ namespace Vulnerar\Agent\Listeners;
 
 use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Http\Events\RequestHandled;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 use Vulnerar\Agent\Event;
 
 final class RequestSubscriber
@@ -28,13 +31,36 @@ final class RequestSubscriber
                 'request' => [
                     'method' => $event->request->method(),
                     'url' => $event->request->fullUrl(),
+                    'size' => strlen($event->request->getContent()),
                 ],
                 'response' => [
                     'status' => $event->response->getStatusCode(),
+                    'size' => $this->parseResponseSize($event->response),
                 ]
             ]
         );
         $event->ingest();
+    }
+
+    private function parseResponseSize(Response $response): int
+    {
+        if (is_string($content = $response->getContent())) {
+            return strlen($content);
+        }
+
+        if ($response instanceof BinaryFileResponse) {
+            try {
+                if (is_int($size = $response->getFile()->getSize())) {
+                    return $size;
+                }
+            } catch (Throwable) {}
+        }
+
+        if (is_numeric($length = $response->headers->get('content-length'))) {
+            return (int) $length;
+        }
+
+        return 0;
     }
 
     public function subscribe(Dispatcher $events): array
