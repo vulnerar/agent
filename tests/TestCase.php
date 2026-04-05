@@ -24,6 +24,10 @@ abstract class TestCase extends BaseTestCase
         $router->get('/request/{id}', function () {
             return 'ok';
         })->name('request.show');
+
+        $router->post('/upload', function () {
+            return 'ok';
+        })->name('upload');
     }
 
     protected function getPackageProviders($app): array
