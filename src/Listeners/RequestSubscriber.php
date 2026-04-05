@@ -7,10 +7,13 @@ use Illuminate\Foundation\Http\Events\RequestHandled;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
+use Vulnerar\Agent\Concerns\RedactsHeaders;
 use Vulnerar\Agent\Event;
 
 final class RequestSubscriber
 {
+    use RedactsHeaders;
+
     public function handleRequestHandled(RequestHandled $event): void
     {
         $routePath = match ($routeUri = $event->request->route()?->uri()) {
@@ -32,6 +35,7 @@ final class RequestSubscriber
                     'method' => $event->request->method(),
                     'url' => $event->request->fullUrl(),
                     'size' => strlen($event->request->getContent()),
+                    'headers' => $this->redactHeaders($event->request->headers)->all(),
                 ],
                 'response' => [
                     'status' => $event->response->getStatusCode(),
