@@ -34,11 +34,9 @@ final class AuthenticationSubscriber
             'auth.login',
             [
                 'login' => $credentials['login'] ?? null,
-                'password' => [
-                    'sha1' => filled($credentials['password'] ?? null)
-                        ? sha1((string) $credentials['password'])
-                        : null,
-                ],
+                'password_sha1' => filled($credentials['password'] ?? null)
+                    ? sha1((string) $credentials['password'])
+                    : null,
                 'user' => Vulnerar::resolveUserDetails($event->user),
                 'ip_address' => request()?->ip(),
             ]
@@ -48,10 +46,13 @@ final class AuthenticationSubscriber
 
     public function handleFailed(Failed $event): void
     {
+        $credentials = $this->guessCredentialFields($event->credentials, true);
+
         $event = new Event(
             'auth.failed',
             [
-                'credentials' => $this->guessCredentialFields($event->credentials, true),
+                'login' => $credentials['login'] ?? null,
+                'password' => $credentials['password'] ?? null,
                 'user' => Vulnerar::resolveUserDetails($event->user),
                 'ip_address' => request()?->ip(),
             ]
@@ -69,7 +70,7 @@ final class AuthenticationSubscriber
         return [
             'login' => $credentials->get('email')
                 ?? $credentials->get('username')
-                ?? $credentials->get('login'),
+                    ?? $credentials->get('login'),
             'password' => $mask
                 ? $this->maskPassword($credentials->get('password'))
                 : $credentials->get('password'),
@@ -90,9 +91,9 @@ final class AuthenticationSubscriber
         $mask = '';
         $i = 0;
 
-        collect([4,2,1])->each(function (int $leak) use ($password, &$mask, &$i) {
+        collect([4, 2, 1])->each(function (int $leak) use ($password, &$mask, &$i) {
             $mask .= substr($password, $i, $leak) . '**';
-            $i += $leak +2;
+            $i += $leak + 2;
         });
         return (string) Str::of($mask)->padRight(14, '*');
     }
