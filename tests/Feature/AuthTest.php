@@ -23,7 +23,7 @@ it('ingests auth.login event using Auth::attempt()', function () {
     Http::assertSent(function (Request $request) use ($user, $credentials): bool {
         return $request['type'] === 'auth.login'
             && $request['data']['login'] === $credentials['email']
-            && $request['data']['password']['sha1'] === sha1($credentials['password'])
+            && $request['data']['password_sha1'] === sha1($credentials['password'])
             && $request['user']['id'] === $user->id
             && $request['user']['name'] === $user->name
             && $request['user']['login'] === $user->email
@@ -48,7 +48,7 @@ it('ingests auth.login event using Auth::attemptWhen()', function () {
     Http::assertSent(function (Request $request) use ($user, $credentials): bool {
         return $request['type'] === 'auth.login'
             && $request['data']['login'] === $credentials['email']
-            && $request['data']['password']['sha1'] === sha1($credentials['password'])
+            && $request['data']['password_sha1'] === sha1($credentials['password'])
             && $request['user']['id'] === $user->id
             && $request['user']['name'] === $user->name
             && $request['user']['login'] === $user->email
@@ -77,7 +77,7 @@ it('ingests auth.login event using Auth::basic()', function () {
     Http::assertSent(function (Request $request) use ($user, $credentials): bool {
         return $request['type'] === 'auth.login'
             && $request['data']['login'] === $credentials['email']
-            && $request['data']['password']['sha1'] === sha1($credentials['password'])
+            && $request['data']['password_sha1'] === sha1($credentials['password'])
             && $request['user']['id'] === $user->id
             && $request['user']['name'] === $user->name
             && $request['user']['login'] === $user->email
@@ -120,8 +120,8 @@ it('ingests auth.failed event (existing user) using Auth::attempt()', function (
 
     Http::assertSent(function (Request $request) use ($user): bool {
         return $request['type'] === 'auth.failed'
-            && $request['data']['credentials']['login'] === 'jon@example.com'
-            && $request['data']['credentials']['password'] === 'wron**pa**w***'
+            && $request['data']['login'] === 'jon@example.com'
+            && $request['data']['password'] === 'wron**pa**w***'
             && $request['user']['id'] === $user->id
             && $request['user']['name'] === $user->name
             && $request['user']['login'] === $user->email
@@ -144,8 +144,8 @@ it('ingests auth.failed event (non-existing user) using Auth::attempt()', functi
 
     Http::assertSent(function (Request $request): bool {
         return $request['type'] === 'auth.failed'
-            && $request['data']['credentials']['login'] === 'admin@example.com'
-            && $request['data']['credentials']['password'] === 'pass**rd******'
+            && $request['data']['login'] === 'admin@example.com'
+            && $request['data']['password'] === 'pass**rd******'
             && $request['user']['id'] === null
             && $request['user']['name'] === null
             && $request['user']['login'] === null
@@ -170,8 +170,8 @@ it('ingests auth.failed event using Auth::attemptWhen()', function () {
 
     Http::assertSent(function (Request $request) use ($user): bool {
         return $request['type'] === 'auth.failed'
-            && $request['data']['credentials']['login'] === 'jon@example.com'
-            && $request['data']['credentials']['password'] === 'wron**pa**w***'
+            && $request['data']['login'] === 'jon@example.com'
+            && $request['data']['password'] === 'wron**pa**w***'
             && $request['user']['id'] === $user->id
             && $request['user']['name'] === $user->name
             && $request['user']['login'] === $user->email
@@ -193,8 +193,8 @@ it('ingests auth.failed event using Auth::basic()', function () {
 
     Http::assertSent(function (Request $request) use ($user): bool {
         return $request['type'] === 'auth.failed'
-            && $request['data']['credentials']['login'] === $user->email
-            && $request['data']['credentials']['password'] === 'wron**pa**w***'
+            && $request['data']['login'] === $user->email
+            && $request['data']['password'] === 'wron**pa**w***'
             && $request['user']['id'] === $user->id
             && $request['user']['name'] === $user->name
             && $request['user']['login'] === $user->email
@@ -217,8 +217,8 @@ it('ingests auth.failed event using Auth::once()', function () {
 
     Http::assertSent(function (Request $request) use ($user): bool {
         return $request['type'] === 'auth.failed'
-            && $request['data']['credentials']['login'] === $user->email
-            && $request['data']['credentials']['password'] === 'wron**pa**w***'
+            && $request['data']['login'] === $user->email
+            && $request['data']['password'] === 'wron**pa**w***'
             && $request['user']['id'] === $user->id
             && $request['user']['name'] === $user->name
             && $request['user']['login'] === $user->email
