@@ -24,7 +24,8 @@ it('ingests auth.login event using Auth::attempt()', function () {
         return $request['type'] === 'auth.login'
             && $request['data']['login'] === $credentials['email']
             && $request['data']['password_sha1'] === sha1($credentials['password'])
-            && $request['user']['id'] === $user->id
+            && $request['user']['id'] === (string) $user->id
+            && $request['user']['type'] === get_class($user)
             && $request['user']['name'] === $user->name
             && $request['user']['login'] === $user->email
             && $request['ip_address'] === '127.0.0.1';
@@ -49,7 +50,8 @@ it('ingests auth.login event using Auth::attemptWhen()', function () {
         return $request['type'] === 'auth.login'
             && $request['data']['login'] === $credentials['email']
             && $request['data']['password_sha1'] === sha1($credentials['password'])
-            && $request['user']['id'] === $user->id
+            && $request['user']['id'] === (string) $user->id
+            && $request['user']['type'] === get_class($user)
             && $request['user']['name'] === $user->name
             && $request['user']['login'] === $user->email
             && $request['ip_address'] === '127.0.0.1';
@@ -78,7 +80,8 @@ it('ingests auth.login event using Auth::basic()', function () {
         return $request['type'] === 'auth.login'
             && $request['data']['login'] === $credentials['email']
             && $request['data']['password_sha1'] === sha1($credentials['password'])
-            && $request['user']['id'] === $user->id
+            && $request['user']['id'] === (string) $user->id
+            && $request['user']['type'] === get_class($user)
             && $request['user']['name'] === $user->name
             && $request['user']['login'] === $user->email
             && $request['ip_address'] === '127.0.0.1';
@@ -122,9 +125,7 @@ it('ingests auth.failed event (existing user) using Auth::attempt()', function (
         return $request['type'] === 'auth.failed'
             && $request['data']['login'] === 'jon@example.com'
             && $request['data']['password'] === 'wron**pa**w***'
-            && $request['user']['id'] === $user->id
-            && $request['user']['name'] === $user->name
-            && $request['user']['login'] === $user->email
+            && $request['user'] === null
             && $request['ip_address'] === '127.0.0.1';
     });
 });
@@ -146,9 +147,7 @@ it('ingests auth.failed event (non-existing user) using Auth::attempt()', functi
         return $request['type'] === 'auth.failed'
             && $request['data']['login'] === 'admin@example.com'
             && $request['data']['password'] === 'pass**rd******'
-            && $request['user']['id'] === null
-            && $request['user']['name'] === null
-            && $request['user']['login'] === null
+            && $request['user'] === null
             && $request['ip_address'] === '127.0.0.1';
     });
 });
@@ -172,9 +171,7 @@ it('ingests auth.failed event using Auth::attemptWhen()', function () {
         return $request['type'] === 'auth.failed'
             && $request['data']['login'] === 'jon@example.com'
             && $request['data']['password'] === 'wron**pa**w***'
-            && $request['user']['id'] === $user->id
-            && $request['user']['name'] === $user->name
-            && $request['user']['login'] === $user->email
+            && $request['user'] === null
             && $request['ip_address'] === '127.0.0.1';
     });
 });
@@ -195,9 +192,7 @@ it('ingests auth.failed event using Auth::basic()', function () {
         return $request['type'] === 'auth.failed'
             && $request['data']['login'] === $user->email
             && $request['data']['password'] === 'wron**pa**w***'
-            && $request['user']['id'] === $user->id
-            && $request['user']['name'] === $user->name
-            && $request['user']['login'] === $user->email
+            && $request['user'] === null
             && $request['ip_address'] === '127.0.0.1';
     });
 });
@@ -219,9 +214,7 @@ it('ingests auth.failed event using Auth::once()', function () {
         return $request['type'] === 'auth.failed'
             && $request['data']['login'] === $user->email
             && $request['data']['password'] === 'wron**pa**w***'
-            && $request['user']['id'] === $user->id
-            && $request['user']['name'] === $user->name
-            && $request['user']['login'] === $user->email
+            && $request['user'] === null
             && $request['ip_address'] === '127.0.0.1';
     });
 });
