@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Str;
 use SensitiveParameter;
 use Vulnerar\Agent\Event;
-use Vulnerar\Agent\Vulnerar;
+use Vulnerar\Agent\UserProvider;
 
 final class AuthenticationSubscriber
 {
@@ -37,7 +37,7 @@ final class AuthenticationSubscriber
                 'password_sha1' => filled($credentials['password'] ?? null)
                     ? sha1((string) $credentials['password'])
                     : null,
-                'user' => Vulnerar::resolveUserDetails($event->user),
+                'user' => UserProvider::details(),
                 'ip_address' => request()?->ip(),
             ]
         );
@@ -53,7 +53,7 @@ final class AuthenticationSubscriber
             [
                 'login' => $credentials['login'] ?? null,
                 'password' => $credentials['password'] ?? null,
-                'user' => Vulnerar::resolveUserDetails($event->user),
+                'user' => UserProvider::details(),
                 'ip_address' => request()?->ip(),
             ]
         );

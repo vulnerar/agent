@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 use Vulnerar\Agent\Concerns\RedactsHeaders;
 use Vulnerar\Agent\Event;
+use Vulnerar\Agent\UserProvider;
 
 final class RequestSubscriber
 {
@@ -25,8 +26,6 @@ final class RequestSubscriber
         $event = new Event(
             'http.request',
             [
-                'ip_address' => $event->request->ip(),
-                'user' => null,
                 'route' => [
                     'name' => $event->request->route()?->getName(),
                     'path' => $routePath,
@@ -40,7 +39,9 @@ final class RequestSubscriber
                 'response' => [
                     'status' => $event->response->getStatusCode(),
                     'size' => $this->parseResponseSize($event->response),
-                ]
+                ],
+                'user' => UserProvider::details(),
+                'ip_address' => $event->request->ip(),
             ]
         );
         $event->ingest();

@@ -2,7 +2,6 @@
 
 namespace Vulnerar\Agent;
 
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Schedule;
 use React\Http\Browser;
 use React\Socket\Connector;
@@ -32,10 +31,6 @@ final class AgentServiceProvider extends ServiceProvider
             ]) : null),
             defined('STDOUT') ? new WritableResourceStream(\STDOUT) : null,
         ));
-
-        $this->app->scoped(Vulnerar::class, function (Application $app): Vulnerar {
-            return new Vulnerar;
-        });
     }
 
     public function boot(): void
