@@ -218,3 +218,22 @@ it('ingests auth.failed event using Auth::once()', function () {
             && $request['ip_address'] === '127.0.0.1';
     });
 });
+
+it('ingests auth.logout event using Auth::logout()', function () {
+    Http::fake();
+
+    $user = User::factory()->create();
+
+    Auth::login($user);
+
+    Auth::logout();
+
+    Http::assertSent(function (Request $request) use ($user): bool {
+        return $request['type'] === 'auth.logout'
+            && $request['user']['id'] === (string) $user->id
+            && $request['user']['type'] === get_class($user)
+            && $request['user']['name'] === $user->name
+            && $request['user']['login'] === $user->email
+            && $request['ip_address'] === '127.0.0.1';
+    });
+});
