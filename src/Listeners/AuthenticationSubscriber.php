@@ -5,6 +5,7 @@ namespace Vulnerar\Agent\Listeners;
 use Illuminate\Auth\Events\Attempting;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Str;
@@ -60,6 +61,22 @@ final class AuthenticationSubscriber
         $event->ingest();
     }
 
+    public function handleLogout(Logout $event): void
+    {
+        if (blank($user = UserProvider::details($event->user))) {
+            return;
+        }
+
+        $event = new Event(
+            'auth.logout',
+            [
+                'user' => $user,
+                'ip_address' => request()?->ip(),
+            ]
+        );
+        $event->ingest();
+    }
+
     /**
      * Guess the login and password fields from the given credentials.
      */
@@ -104,6 +121,7 @@ final class AuthenticationSubscriber
             Attempting::class => 'handleAttempting',
             Login::class => 'handleLogin',
             Failed::class => 'handleFailed',
+            Logout::class => 'handleLogout',
         ];
     }
 }
