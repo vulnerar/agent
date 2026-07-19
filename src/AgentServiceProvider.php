@@ -5,7 +5,6 @@ namespace Vulnerar\Agent;
 use Illuminate\Support\Facades\Schedule;
 use React\Http\Browser;
 use React\Socket\Connector;
-use React\Stream\WritableResourceStream;
 use Vulnerar\Agent\Console\Commands\AgentCommand;
 use Vulnerar\Agent\Console\Commands\ApplicationCommand;
 use Vulnerar\Agent\Console\Commands\PackageCommand;
@@ -29,7 +28,6 @@ final class AgentServiceProvider extends ServiceProvider
                     'verify_peer_name' => false,
                 ],
             ]) : null),
-            defined('STDOUT') ? new WritableResourceStream(\STDOUT) : null,
         ));
     }
 

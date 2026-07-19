@@ -15,7 +15,7 @@ use React\Http\Middleware\RequestBodyBufferMiddleware;
 use React\Http\Middleware\RequestBodyParserMiddleware;
 use React\Http\Middleware\StreamingRequestMiddleware;
 use React\Socket\SocketServer;
-use React\Stream\WritableStreamInterface;
+use React\Stream\WritableResourceStream;
 use Vulnerar\Agent\Console\Commands\ApplicationCommand;
 
 final class Agent
@@ -23,7 +23,6 @@ final class Agent
     public function __construct(
         protected RecordsBuffer $buffer,
         protected Browser $browser,
-        protected ?WritableStreamInterface $output
     ) {
         //
     }
@@ -48,12 +47,12 @@ final class Agent
 
     private function info(string $message): void
     {
-        $this->output?->write(date('Y-m-d H:i:s') . ' [INFO] ' . $message . \PHP_EOL);
+        $this->output()?->write(date('Y-m-d H:i:s') . ' [INFO] ' . $message . \PHP_EOL);
     }
 
     private function error(string $message): void
     {
-        $this->output?->write(date('Y-m-d H:i:s') . ' [ERROR] ' . $message . \PHP_EOL);
+        $this->output()?->write(date('Y-m-d H:i:s') . ' [ERROR] ' . $message . \PHP_EOL);
     }
 
     public function run(int $port): void
@@ -102,5 +101,12 @@ final class Agent
         $this->info('Vulnerar agent listening on 127.0.0.1:'.$port);
 
         $httpServer->listen($socket);
+    }
+
+    private function output(): ?WritableResourceStream
+    {
+        return Loop::get() && defined('STDOUT')
+            ? new WritableResourceStream(\STDOUT)
+            : null;
     }
 }
