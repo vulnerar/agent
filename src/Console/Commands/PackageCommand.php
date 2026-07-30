@@ -37,10 +37,8 @@ final class PackageCommand extends Command
         $event = new Event(
             'package.composer',
             [
-                'composer' => json_decode($composer, true),
-                'lock' => json_decode($lock, true),
-                'composer_encoded' => base64_encode($composer),
-                'lock_encoded' => base64_encode($lock),
+                'manifest' => base64_encode($composer),
+                'lock' => base64_encode($lock),
             ]
         );
         $event->ingest();

@@ -24,10 +24,8 @@ it('ingests package.composer event', function () {
 
     Http::assertSent(function (Request $request) use ($composer, $lock): bool {
         return $request['type'] === 'package.composer'
-            && $request['data']['composer'] === json_decode($composer, true)
-            && $request['data']['lock'] === json_decode($lock, true)
-            && $request['data']['composer_encoded'] === base64_encode($composer)
-            && $request['data']['lock_encoded'] === base64_encode($lock)
+            && $request['data']['manifest'] === base64_encode($composer)
+            && $request['data']['lock'] === base64_encode($lock)
             && $request['user'] === null
             && $request['ip_address'] === null;
     });
