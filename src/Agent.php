@@ -34,6 +34,7 @@ final class Agent
 
         $this->browser->post("https://{$host}/api/agent/ingest", [
             'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
             'User-Agent' => 'vulnerar/agent',
             'Authorization' => "Bearer {$token}",
         ], json_encode([
