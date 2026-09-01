@@ -17,6 +17,7 @@ use React\Http\Middleware\StreamingRequestMiddleware;
 use React\Socket\SocketServer;
 use React\Stream\WritableResourceStream;
 use Vulnerar\Agent\Console\Commands\ApplicationCommand;
+use Vulnerar\Agent\Console\Commands\PackageCommand;
 
 final class Agent
 {
@@ -89,6 +90,7 @@ final class Agent
 
         Loop::addTimer(1, function () {
             Artisan::call(ApplicationCommand::class);
+            Artisan::call(PackageCommand::class);
         });
 
         Loop::addTimer(5, function () {
