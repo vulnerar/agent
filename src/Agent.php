@@ -90,6 +90,9 @@ final class Agent
 
         Loop::addTimer(1, function () {
             Artisan::call(ApplicationCommand::class);
+        });
+
+        Loop::addTimer(1, function () {
             Artisan::call(PackageCommand::class);
         });
 
