@@ -16,6 +16,8 @@ it('ingests app.info event', function () {
             && $request['data']['app_url'] === config('app.url')
             && $request['data']['environment'] === app()->environment()
             && $request['data']['laravel_version'] === app()->version()
+            && $request['data']['environment'] === app()->environment()
+            && $request['data']['debug'] === app()->hasDebugModeEnabled()
             && $request['data']['php_version'] === phpversion()
             && $request['data']['os']['name'] !== null
             && isset($request['data']['os']['user']['uid'])

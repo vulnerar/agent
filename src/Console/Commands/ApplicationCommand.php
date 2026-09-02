@@ -36,6 +36,7 @@ final class ApplicationCommand extends Command
                 'laravel_version' => app()->version(),
                 'php_version' => phpversion(),
                 'environment' => app()->environment(),
+                'debug' => app()->hasDebugModeEnabled(),
                 'os' => [
                     'name' => $this->getOsName(),
                     'user' => $this->getOsUser(),
