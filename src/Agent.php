@@ -3,7 +3,7 @@
 namespace Vulnerar\Agent;
 
 use Exception;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Process;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use React\EventLoop\Loop;
@@ -16,8 +16,8 @@ use React\Http\Middleware\RequestBodyParserMiddleware;
 use React\Http\Middleware\StreamingRequestMiddleware;
 use React\Socket\SocketServer;
 use React\Stream\WritableResourceStream;
-use Vulnerar\Agent\Console\Commands\ApplicationCommand;
-use Vulnerar\Agent\Console\Commands\PackageCommand;
+use function Illuminate\Support\artisan_binary;
+use function Illuminate\Support\php_binary;
 
 final class Agent
 {
@@ -89,11 +89,19 @@ final class Agent
         });
 
         Loop::addTimer(1, function () {
-            Artisan::call(ApplicationCommand::class);
+            Process::start([
+                php_binary(),
+                artisan_binary(),
+                'vulnerar:application'
+            ]);
         });
 
-        Loop::addTimer(1, function () {
-            Artisan::call(PackageCommand::class);
+        Loop::addTimer(2, function () {
+            Process::start([
+                php_binary(),
+                artisan_binary(),
+                'vulnerar:package'
+            ]);
         });
 
         Loop::addTimer(5, function () {
