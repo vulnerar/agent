@@ -4,6 +4,7 @@ namespace Vulnerar\Agent\Listeners;
 
 use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Http\Events\RequestHandled;
+use Illuminate\Http\UploadedFile;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -23,6 +24,11 @@ final class RequestSubscriber
             default => '/' . $routeUri,
         };
 
+        $files = collect($event->request->allFiles())
+            ->filter(fn (mixed $file) => $file instanceof UploadedFile)
+            ->map(fn (UploadedFile $file) => $this->parseUploadedFile($file))
+            ->values();
+
         $event = new Event(
             'http.request',
             [
@@ -35,6 +41,7 @@ final class RequestSubscriber
                     'url' => $event->request->fullUrl(),
                     'size' => strlen($event->request->getContent()),
                     'headers' => $this->redactHeaders($event->request->headers)->all(),
+                    'files' => $files->toArray(),
                 ],
                 'response' => [
                     'status' => $event->response->getStatusCode(),
@@ -45,6 +52,20 @@ final class RequestSubscriber
             ]
         );
         $event->ingest();
+    }
+
+    private function parseUploadedFile(UploadedFile $file): array
+    {
+        return rescue(function () use ($file) {
+            return [
+                'original_name' => $file->getClientOriginalName(),
+                'extension' => $file->getClientOriginalExtension(),
+                'mime_type' => $file->getMimeType(),
+                'size' => (int) $file->getSize(),
+                'sha1' => hash_file('sha1', $file->getRealPath()),
+                'md5' => hash_file('md5', $file->getRealPath()),
+            ];
+        }, rescue: [], report: false);
     }
 
     private function parseResponseSize(Response $response): int
