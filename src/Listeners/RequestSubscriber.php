@@ -5,6 +5,7 @@ namespace Vulnerar\Agent\Listeners;
 use Illuminate\Events\Dispatcher;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -24,7 +25,7 @@ final class RequestSubscriber
             default => '/' . $routeUri,
         };
 
-        $files = collect($event->request->allFiles())
+        $files = collect(Arr::flatten($event->request->allFiles()))
             ->filter(fn (mixed $file) => $file instanceof UploadedFile)
             ->map(fn (UploadedFile $file) => $this->parseUploadedFile($file))
             ->values();
