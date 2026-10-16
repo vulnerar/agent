@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -230,6 +231,23 @@ it('ingests auth.logout event using Auth::logout()', function () {
 
     Http::assertSent(function (Request $request) use ($user): bool {
         return $request['type'] === 'auth.logout'
+            && $request['user']['id'] === (string) $user->id
+            && $request['user']['type'] === get_class($user)
+            && $request['user']['name'] === $user->name
+            && $request['user']['login'] === $user->email
+            && $request['ip_address'] === '127.0.0.1';
+    });
+});
+
+it('ingests auth.verified event', function () {
+    Http::fake();
+
+    $user = User::factory()->create();
+
+    event(new Verified($user));
+
+    Http::assertSent(function (Request $request) use ($user): bool {
+        return $request['type'] === 'auth.verified'
             && $request['user']['id'] === (string) $user->id
             && $request['user']['type'] === get_class($user)
             && $request['user']['name'] === $user->name
