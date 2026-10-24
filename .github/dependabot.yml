@@ -1,0 +1,9 @@
+version: 2
+updates:
+  - package-ecosystem: "composer"
+    directory: "/"
+    open-pull-requests-limit: 0
+    cooldown:
+      default-days: 7
+    schedule:
+      interval: "daily"
