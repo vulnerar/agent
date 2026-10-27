@@ -26,9 +26,6 @@ The agent must be actively running to collect and send data to Vulnerar. Start t
  php artisan vulnerar:agent
  ```
 
-The agent also uses Laravel's built-in task scheduling to collect periodic events in the background. Use your preferred way
-to [run the task scheduler](https://laravel.com/docs/scheduling#running-the-scheduler).
-
 <details>
    <summary><b>Run agent using supervisord (recommended)</b></summary>
 

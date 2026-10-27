@@ -104,6 +104,14 @@ final class Agent
             ]);
         });
 
+        Loop::addPeriodicTimer(60 * 60 * 24, function () {
+            Process::start([
+                php_binary(),
+                artisan_binary(),
+                'vulnerar:package'
+            ]);
+        });
+
         Loop::addTimer(5, function () {
             if ($this->buffer->count() === 0) {
                 return;

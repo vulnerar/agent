@@ -2,7 +2,6 @@
 
 namespace Vulnerar\Agent;
 
-use Illuminate\Support\Facades\Schedule;
 use React\Http\Browser;
 use React\Socket\Connector;
 use Vulnerar\Agent\Console\Commands\AgentCommand;
@@ -42,8 +41,6 @@ final class AgentServiceProvider extends ServiceProvider
                 ApplicationCommand::class,
                 PackageCommand::class,
             ]);
-
-            Schedule::command(PackageCommand::class)->daily();
         }
     }
 }
