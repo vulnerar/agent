@@ -28,6 +28,96 @@ final class Agent
         //
     }
 
+    public function run(int $port): void
+    {
+        $this->boot();
+
+        $httpServer = new HttpServer(
+            new StreamingRequestMiddleware(),
+            new LimitConcurrentRequestsMiddleware(100),
+            new RequestBodyBufferMiddleware(20 * 1024 * 1024),
+            new RequestBodyParserMiddleware(),
+            function (RequestInterface $request) {
+                $record = json_decode($request->getBody()->getContents(), true);
+
+                if (!is_array($record)) {
+                    return Response::plaintext('OK');
+                }
+
+                $this->buffer->write($record);
+
+                if ($this->buffer->full) {
+                    $this->ingest($this->buffer->pull());
+                }
+                return Response::plaintext('OK');
+            });
+        $socket = new SocketServer("127.0.0.1:$port");
+
+        $this->info('Vulnerar agent listening on 127.0.0.1:'.$port);
+
+        $httpServer->listen($socket);
+    }
+
+    private function boot(): void
+    {
+        $this->registerPeriodicTasks();
+        $this->registerStartupTasks();
+    }
+
+    private function registerPeriodicTasks(): void
+    {
+        Loop::addPeriodicTimer(60 * 60 * 24, function () {
+            Process::start([
+                php_binary(),
+                artisan_binary(),
+                'vulnerar:application'
+            ]);
+        });
+
+        Loop::addPeriodicTimer(60 * 60 * 24, function () {
+            Process::start([
+                php_binary(),
+                artisan_binary(),
+                'vulnerar:package'
+            ]);
+        });
+
+        Loop::addPeriodicTimer(30, function () {
+            if ($this->buffer->count() === 0) {
+                return;
+            }
+
+            $this->ingest($this->buffer->pull());
+        });
+    }
+
+    private function registerStartupTasks(): void
+    {
+        Loop::addTimer(1, function () {
+            Process::start([
+                php_binary(),
+                artisan_binary(),
+                'vulnerar:application'
+            ]);
+        });
+
+        Loop::addTimer(2, function () {
+            Process::start([
+                php_binary(),
+                artisan_binary(),
+                'vulnerar:package'
+            ]);
+        });
+
+        Loop::addTimer(5, function () {
+            if ($this->buffer->count() === 0) {
+                return;
+            }
+
+            $this->ingest($this->buffer->pull());
+        });
+    }
+
     protected function ingest(array $records): void
     {
         $host = config('vulnerar.host');
@@ -55,74 +145,6 @@ final class Agent
     private function error(string $message): void
     {
         $this->output()?->write(date('Y-m-d H:i:s') . ' [ERROR] ' . $message . \PHP_EOL);
-    }
-
-    public function run(int $port): void
-    {
-        $httpServer = new HttpServer(
-            new StreamingRequestMiddleware(),
-            new LimitConcurrentRequestsMiddleware(100),
-            new RequestBodyBufferMiddleware(20 * 1024 * 1024),
-            new RequestBodyParserMiddleware(),
-            function (RequestInterface $request) {
-                $record = json_decode($request->getBody()->getContents(), true);
-
-                if (!is_array($record)) {
-                    return Response::plaintext('OK');
-                }
-
-                $this->buffer->write($record);
-
-                if ($this->buffer->full) {
-                    $this->ingest($this->buffer->pull());
-                }
-                return Response::plaintext('OK');
-            });
-        $socket = new SocketServer("127.0.0.1:$port");
-
-        Loop::addPeriodicTimer(30, function () {
-            if ($this->buffer->count() === 0) {
-                return;
-            }
-
-            $this->ingest($this->buffer->pull());
-        });
-
-        Loop::addTimer(1, function () {
-            Process::start([
-                php_binary(),
-                artisan_binary(),
-                'vulnerar:application'
-            ]);
-        });
-
-        Loop::addTimer(2, function () {
-            Process::start([
-                php_binary(),
-                artisan_binary(),
-                'vulnerar:package'
-            ]);
-        });
-
-        Loop::addPeriodicTimer(60 * 60 * 24, function () {
-            Process::start([
-                php_binary(),
-                artisan_binary(),
-                'vulnerar:package'
-            ]);
-        });
-
-        Loop::addTimer(5, function () {
-            if ($this->buffer->count() === 0) {
-                return;
-            }
-
-            $this->ingest($this->buffer->pull());
-        });
-
-        $this->info('Vulnerar agent listening on 127.0.0.1:'.$port);
-
-        $httpServer->listen($socket);
     }
 
     private function output(): ?WritableResourceStream
