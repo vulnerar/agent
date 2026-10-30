@@ -82,7 +82,7 @@ final class Agent
             ]);
         });
 
-        Loop::addPeriodicTimer(30, function () {
+        Loop::addPeriodicTimer(config()->boolean('vulnerar.dev') ? 5 : 30, function () {
             if ($this->buffer->count() === 0) {
                 return;
             }
