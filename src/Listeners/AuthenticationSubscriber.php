@@ -24,11 +24,6 @@ final class AuthenticationSubscriber
 
     public function handleLogin(Login $event): void
     {
-        // Handle only logins with credentials
-        if (Context::missingHidden('vulnerar_auth_credentials')) {
-            return;
-        }
-
         $credentials = $this->guessCredentialFields(
             Context::pullHidden('vulnerar_auth_credentials', [])
         );
@@ -134,12 +129,14 @@ final class AuthenticationSubscriber
 
     public function subscribe(Dispatcher $events): array
     {
-        return [
+        $isRequestOrUnitTest = ! app()->runningInConsole() || (app()->runningInConsole() && app()->runningUnitTests());
+
+        return $isRequestOrUnitTest ? [
             Attempting::class => 'handleAttempting',
             Login::class => 'handleLogin',
             Failed::class => 'handleFailed',
             Logout::class => 'handleLogout',
             Verified::class => 'handleVerified',
-        ];
+        ] : [];
     }
 }

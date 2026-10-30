@@ -4,6 +4,7 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Vulnerar\Agent\Listeners\AuthenticationSubscriber;
 use Workbench\App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
@@ -89,24 +90,42 @@ it('ingests auth.login event using Auth::basic()', function () {
     });
 });
 
-it('does not ingest auth.login events using Auth::login()', function () {
+it('ingests auth.login events using Auth::login()', function () {
     Http::fake();
 
     $user = User::factory()->create();
 
     Auth::login($user);
 
-    Http::assertNothingSent();
+    Http::assertSent(function (Request $request) use ($user): bool {
+        return $request['type'] === 'auth.login'
+            && $request['data']['login'] === null
+            && $request['data']['password_sha1'] === null
+            && $request['user']['id'] === (string) $user->id
+            && $request['user']['type'] === get_class($user)
+            && $request['user']['name'] === $user->name
+            && $request['user']['login'] === $user->email
+            && $request['ip_address'] === '127.0.0.1';
+    });
 });
 
-it('does not ingest auth.login events using Auth::loginUsingId()', function () {
+it('ingests auth.login events using Auth::loginUsingId()', function () {
     Http::fake();
 
     $user = User::factory()->create();
 
     Auth::loginUsingId($user->getKey());
 
-    Http::assertNothingSent();
+    Http::assertSent(function (Request $request) use ($user): bool {
+        return $request['type'] === 'auth.login'
+            && $request['data']['login'] === null
+            && $request['data']['password_sha1'] === null
+            && $request['user']['id'] === (string) $user->id
+            && $request['user']['type'] === get_class($user)
+            && $request['user']['name'] === $user->name
+            && $request['user']['login'] === $user->email
+            && $request['ip_address'] === '127.0.0.1';
+    });
 });
 
 it('ingests auth.failed event (existing user) using Auth::attempt()', function () {
@@ -254,4 +273,16 @@ it('ingests auth.verified event', function () {
             && $request['user']['login'] === $user->email
             && $request['ip_address'] === '127.0.0.1';
     });
+});
+
+it('ingests auth.* events only on http requests', function () {
+
+    // Since we are unable to fake app()->runningInConsole() in a unit test, we are faking app()->runningUnitTests() instead
+    $subscriber = app(AuthenticationSubscriber::class);
+
+    $this->app['env'] = 'local';
+    $this->assertEmpty($subscriber->subscribe($this->app['events']));
+
+    $this->app['env'] = 'testing';
+    $this->assertNotEmpty($subscriber->subscribe($this->app['events']));
 });
