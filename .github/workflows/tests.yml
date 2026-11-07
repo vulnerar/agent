@@ -19,7 +19,9 @@ jobs:
           - php: 8.5
             laravel: 11.*
           - php: 8.6
-            laravel: [12.*, 11.*]
+            laravel: 12.*
+          - php: 8.6
+            laravel: 11.*
 
     name: Unit - L${{ matrix.laravel }} - PHP ${{ matrix.php }}
 
