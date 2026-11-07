@@ -19,40 +19,44 @@ final class RequestSubscriber
 
     public function handleRequestHandled(RequestHandled $event): void
     {
-        $routePath = match ($routeUri = $event->request->route()?->uri()) {
-            null => null,
-            '/' => '/',
-            default => '/' . $routeUri,
-        };
+        try {
+            $routePath = match ($routeUri = $event->request->route()?->uri()) {
+                null => null,
+                '/' => '/',
+                default => '/' . $routeUri,
+            };
 
-        $files = collect(Arr::flatten($event->request->allFiles()))
-            ->filter(fn (mixed $file) => $file instanceof UploadedFile)
-            ->map(fn (UploadedFile $file) => $this->parseUploadedFile($file))
-            ->values();
+            $files = collect(Arr::flatten($event->request->allFiles()))
+                ->filter(fn (mixed $file) => $file instanceof UploadedFile)
+                ->map(fn (UploadedFile $file) => $this->parseUploadedFile($file))
+                ->values();
 
-        $event = new Event(
-            'http.request',
-            [
-                'route' => [
-                    'name' => $event->request->route()?->getName(),
-                    'path' => $routePath,
-                ],
-                'request' => [
-                    'method' => $event->request->method(),
-                    'url' => $event->request->fullUrl(),
-                    'size' => strlen($event->request->getContent()),
-                    'headers' => $this->redactHeaders($event->request->headers)->all(),
-                    'files' => $files->toArray(),
-                ],
-                'response' => [
-                    'status' => $event->response->getStatusCode(),
-                    'size' => $this->parseResponseSize($event->response),
-                ],
-                'user' => UserProvider::details(),
-                'ip_address' => $event->request->ip(),
-            ]
-        );
-        $event->ingest();
+            $event = new Event(
+                'http.request',
+                [
+                    'route' => [
+                        'name' => $event->request->route()?->getName(),
+                        'path' => $routePath,
+                    ],
+                    'request' => [
+                        'method' => $event->request->method(),
+                        'url' => $event->request->fullUrl(),
+                        'size' => strlen($event->request->getContent()),
+                        'headers' => $this->redactHeaders($event->request->headers)->all(),
+                        'files' => $files->toArray(),
+                    ],
+                    'response' => [
+                        'status' => $event->response->getStatusCode(),
+                        'size' => $this->parseResponseSize($event->response),
+                    ],
+                    'user' => UserProvider::details(),
+                    'ip_address' => $event->request->ip(),
+                ]
+            );
+            $event->ingest();
+        } catch (Throwable $e) {
+            report($e);
+        }
     }
 
     private function parseUploadedFile(UploadedFile $file): array

@@ -11,6 +11,7 @@ use Illuminate\Events\Dispatcher;
 use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Str;
 use SensitiveParameter;
+use Throwable;
 use Vulnerar\Agent\Event;
 use Vulnerar\Agent\UserProvider;
 
@@ -24,69 +25,85 @@ final class AuthenticationSubscriber
 
     public function handleLogin(Login $event): void
     {
-        $credentials = $this->guessCredentialFields(
-            Context::pullHidden('vulnerar_auth_credentials', [])
-        );
-        $event = new Event(
-            'auth.login',
-            [
-                'login' => $credentials['login'] ?? null,
-                'password_sha1' => filled($credentials['password'] ?? null)
-                    ? sha1((string) $credentials['password'])
-                    : null,
-                'user' => UserProvider::details(),
-                'ip_address' => request()?->ip(),
-            ]
-        );
-        $event->ingest();
+        try {
+            $credentials = $this->guessCredentialFields(
+                Context::pullHidden('vulnerar_auth_credentials', [])
+            );
+            $event = new Event(
+                'auth.login',
+                [
+                    'login' => $credentials['login'] ?? null,
+                    'password_sha1' => filled($credentials['password'] ?? null)
+                        ? sha1((string) $credentials['password'])
+                        : null,
+                    'user' => UserProvider::details(),
+                    'ip_address' => request()?->ip(),
+                ]
+            );
+            $event->ingest();
+        } catch (Throwable $e) {
+            report($e);
+        }
     }
 
     public function handleFailed(Failed $event): void
     {
-        $credentials = $this->guessCredentialFields($event->credentials, true);
+        try {
+            $credentials = $this->guessCredentialFields($event->credentials, true);
 
-        $event = new Event(
-            'auth.failed',
-            [
-                'login' => $credentials['login'] ?? null,
-                'password' => $credentials['password'] ?? null,
-                'user' => UserProvider::details(),
-                'ip_address' => request()?->ip(),
-            ]
-        );
-        $event->ingest();
+            $event = new Event(
+                'auth.failed',
+                [
+                    'login' => $credentials['login'] ?? null,
+                    'password' => $credentials['password'] ?? null,
+                    'user' => UserProvider::details(),
+                    'ip_address' => request()?->ip(),
+                ]
+            );
+            $event->ingest();
+        } catch (Throwable $e) {
+            report($e);
+        }
     }
 
     public function handleLogout(Logout $event): void
     {
-        if (blank($user = UserProvider::details($event->user))) {
-            return;
-        }
+        try {
+            if (blank($user = UserProvider::details($event->user))) {
+                return;
+            }
 
-        $event = new Event(
-            'auth.logout',
-            [
-                'user' => $user,
-                'ip_address' => request()?->ip(),
-            ]
-        );
-        $event->ingest();
+            $event = new Event(
+                'auth.logout',
+                [
+                    'user' => $user,
+                    'ip_address' => request()?->ip(),
+                ]
+            );
+            $event->ingest();
+        } catch (Throwable $e) {
+            report($e);
+        }
     }
 
     public function handleVerified(Verified $event): void
     {
-        if (blank($user = UserProvider::details($event->user))) {
-            return;
-        }
+        try {
+            if (blank($user = UserProvider::details($event->user))) {
+                return;
+            }
 
-        $event = new Event(
-            'auth.verified',
-            [
-                'user' => $user,
-                'ip_address' => request()?->ip(),
-            ]
-        );
-        $event->ingest();
+            $event = new Event(
+                'auth.verified',
+                [
+                    'user' => $user,
+                    'ip_address' => request()?->ip(),
+                ]
+            );
+            $event->ingest();
+        } catch (Throwable $e) {
+            report($e);
+        }
     }
 
     /**
