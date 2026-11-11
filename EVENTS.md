@@ -83,3 +83,17 @@
 | `user.name`  | `John Doe`  | User name  |
 | `user.login`  | `john@example.com`  | User login (`login`, `username` or `email`)  |
 | `ip_address`  | `203.0.113.10`  | Client IP address  |
+
+## mail
+| Field  | Example  | Description  |
+|:---|:---|:---|
+| `mail.subject`  | `Welcome!`  | Mail subject  |
+| `mail.sender.name`  | `Example App`  | Envelope sender name  |
+| `mail.sender.email`  | `noreply@example.com`  | Envelope sender email address  |
+| `mail.recipients[].name`  | `John Doe`  | Recipient name  |
+| `mail.recipients[].email`  | `john@example.com`  | Recipient email address  |
+| `user.id`  | `1`  | User primary key  |
+| `user.type`  | `App\Models\User`  | User model class  |
+| `user.name`  | `John Doe`  | User name  |
+| `user.login`  | `john@example.com`  | User login (`login`, `username` or `email`)  |
+| `ip_address`  | `203.0.113.10`  | Client IP address  |
