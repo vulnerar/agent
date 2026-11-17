@@ -22,7 +22,7 @@ trait RedactsHeaders
 {
     private function redactHeaders(HeaderBag $headers): HeaderBag
     {
-        $keys = ['Authorization', 'Cookie', 'Proxy-Authorization', 'X-XSRF-TOKEN'];
+        $keys = ['Authorization', 'Cookie', 'Proxy-Authorization', 'X-XSRF-TOKEN', 'Php-Auth-Pw'];
 
         foreach ($keys as $key) {
             if (! $headers->has($key)) {
